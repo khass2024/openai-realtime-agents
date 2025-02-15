@@ -19,7 +19,16 @@ const greeter: AgentConfig = {
   downstreamAgents: [haiku],
 };
 
+const tutor: AgentConfig = {
+  name: "tutor",
+  publicDescription: "Agent that is a math tutor.",
+  instructions:
+    "You are a math tutor for a 7th grader. Please help the 7th grader to work through the problem: 2x + 3 = 7",
+  tools: [],
+  downstreamAgents: [haiku],
+};
+
 // add the transfer tool to point to downstreamAgents
-const agents = injectTransferTools([greeter, haiku]);
+const agents = injectTransferTools([greeter, haiku, tutor]);
 
 export default agents;
