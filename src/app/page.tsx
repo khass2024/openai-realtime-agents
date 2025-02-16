@@ -19,36 +19,6 @@ function ProgressDisplay() {
 }
 
 export default function Page() {
-  const [showImage, setShowImage] = useState(false);
-  const [currentStage, setCurrentStage] = useState(0);
-  const [isComplete, setIsComplete] = useState(false);
-
-  // No need for successImages array since we're using the same image
-
-  useEffect(() => {
-    const handleProblemSolved = () => {
-      if (currentStage < 5) {
-        setShowImage(true);
-        setCurrentStage(prev => {
-          const newStage = prev + 1;
-          if (newStage === 5) {
-            setIsComplete(true);
-          }
-          return Math.min(newStage, 5);
-        });
-        setTimeout(() => setShowImage(false), 2000);
-      }
-    };
-
-    window.addEventListener('problemSolved', handleProblemSolved);
-    return () => window.removeEventListener('problemSolved', handleProblemSolved);
-  }, [currentStage]);
-
-  // Debug function to simulate problem solved
-  const debugTriggerSolved = () => {
-    window.dispatchEvent(new Event('problemSolved'));
-  };
-
   return (
     <TranscriptProvider>
       <EventProvider>
