@@ -1,5 +1,5 @@
 // src/app/page.tsx
-"use client";  // <-- Add this at the very top
+"use client";
 
 import React from "react";
 import { TranscriptProvider } from "@/app/contexts/TranscriptContext";
@@ -12,7 +12,7 @@ function ProgressDisplay() {
   return (
     <div className="absolute top-20 left-1/2 transform -translate-x-1/2 z-10">
       <h1 className="text-xl font-bold p-2 bg-white/80 rounded-lg shadow-sm">
-        Progress: {currentQuestionIndex}/{totalQuestions}
+        Progress: {currentQuestionIndex + 1}/{totalQuestions}
       </h1>
     </div>
   );

@@ -13,17 +13,43 @@ interface ProgressContextValue {
 }
 
 /**
- * Helper function to normalize text.
+ * Mapping of digits to words.
+ */
+const digitMap: Record<string, string> = {
+  "0": "zero",
+  "1": "one",
+  "2": "two",
+  "3": "three",
+  "4": "four",
+  "5": "five",
+  "6": "six",
+  "7": "seven",
+  "8": "eight",
+  "9": "nine",
+};
+
+/**
+ * Replaces digits in the string with their word equivalents.
+ */
+const convertDigitsToWords = (str: string): string => {
+  return str.replace(/\d/g, (digit) => digitMap[digit] || digit);
+};
+
+/**
+ * Normalizes the string:
  * - Converts to lowercase
  * - Replaces "equals" with "="
  * - Normalizes whitespace
+ * - Also converts digits to words
  */
-const normalizeText = (str: string) => {
-  return str
-    .toLowerCase()
-    .replace(/equals/g, "=")
-    .replace(/\s+/g, " ")
-    .trim();
+const normalizeText = (str: string): string => {
+  return convertDigitsToWords(
+    str
+      .toLowerCase()
+      .replace(/equals/g, "=")
+      .replace(/\s+/g, " ")
+      .trim()
+  );
 };
 
 const ProgressContext = createContext<ProgressContextValue | undefined>(undefined);
@@ -37,12 +63,15 @@ export const ProgressProvider: FC<PropsWithChildren> = ({ children }) => {
 
   /**
    * Checks if the provided text contains the answer to the current question.
-   * Normalizes both the text and answer to allow for minor differences (like "equals" vs. "=").
+   * This will normalize both text and answer and convert any digits to words so that
+   * variations like "2", "two", or "equals" are handled.
    */
   const checkAnswer = (text: string): boolean => {
     if (!currentQuestion) return false;
     const normalizedText = normalizeText(text);
     const normalizedAnswer = normalizeText(currentQuestion.answer);
+    console.log("Normalized transcript:", normalizedText);
+    console.log("Normalized answer:", normalizedAnswer);
     return normalizedText.includes(normalizedAnswer);
   };
 
