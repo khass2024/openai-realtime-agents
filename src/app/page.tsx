@@ -1,9 +1,22 @@
-"use client";
+// src/app/page.tsx
+"use client";  // <-- Add this at the very top
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { TranscriptProvider } from "@/app/contexts/TranscriptContext";
 import { EventProvider } from "@/app/contexts/EventContext";
+import { ProgressProvider, useProgress } from "@/app/contexts/ProgressContext";
 import App from "./App";
+
+function ProgressDisplay() {
+  const { currentQuestionIndex, totalQuestions } = useProgress();
+  return (
+    <div className="absolute top-20 left-1/2 transform -translate-x-1/2 z-10">
+      <h1 className="text-xl font-bold p-2 bg-white/80 rounded-lg shadow-sm">
+        Progress: {currentQuestionIndex}/{totalQuestions}
+      </h1>
+    </div>
+  );
+}
 
 export default function Page() {
   const [showImage, setShowImage] = useState(false);
@@ -39,51 +52,12 @@ export default function Page() {
   return (
     <TranscriptProvider>
       <EventProvider>
-        <div className="flex flex-col h-screen relative">
-          {/* Debug button - only shown in development */}
-          {process.env.NODE_ENV === 'development' && (
-            <button 
-              onClick={debugTriggerSolved}
-              className="fixed top-4 right-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded z-30"
-            >
-              Debug: Trigger Success
-            </button>
-          )}
-          <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-10">
-            <h1 className="text-xl font-bold p-2 bg-white/80 rounded-lg shadow-sm flex items-center gap-2">
-              {isComplete ? (
-                <span className="text-green-600 animate-pulse">Well Done! 🎉</span>
-              ) : (
-                <>
-                  Progress: {currentStage}/5
-                  <img 
-                    src="/golden-star.png" 
-                    alt="Golden Star" 
-                    className="h-6 w-6 object-contain"
-                  />
-                </>
-              )}
-            </h1>
+        <ProgressProvider>
+          <div className="flex flex-col h-screen relative">
+            <ProgressDisplay />
+            <App />
           </div>
-          {/* Success animation with zoom effect */}
-          <div className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 transition-all duration-500 
-            ${showImage ? 'opacity-100 scale-100' : 'opacity-0 scale-90'}`}>
-            <img 
-              src="/golden-star.png" 
-              alt="Success Star" 
-              className="w-48 h-48 object-contain animate-zoom-in"
-            />
-          </div>
-          {/* Fireworks animation when complete */}
-          {isComplete && (
-            <div className="fixed inset-0 pointer-events-none">
-              <div className="absolute left-1/4 animate-firework-1" />
-              <div className="absolute left-2/4 animate-firework-2" />
-              <div className="absolute left-3/4 animate-firework-3" />
-            </div>
-          )}
-          <App />
-        </div>
+        </ProgressProvider>
       </EventProvider>
     </TranscriptProvider>
   );

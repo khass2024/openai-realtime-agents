@@ -1,8 +1,11 @@
+// src/app/hooks/useHandleServerEvent.ts
 "use client";
 
 import { ServerEvent, SessionStatus, AgentConfig } from "@/app/types";
 import { useTranscript } from "@/app/contexts/TranscriptContext";
 import { useEvent } from "@/app/contexts/EventContext";
+import { useProgress } from "@/app/contexts/ProgressContext";
+import questions from "@/app/questionBank";
 import { useRef } from "react";
 
 export interface UseHandleServerEventParams {
@@ -30,6 +33,7 @@ export function useHandleServerEvent({
   } = useTranscript();
 
   const { logServerEvent } = useEvent();
+  const { currentQuestion, checkAnswer, incrementProgress, currentQuestionIndex } = useProgress();
 
   const handleFunctionCall = async (functionCallParams: {
     name: string;
@@ -102,6 +106,33 @@ export function useHandleServerEvent({
     }
   };
 
+  const processAnswerIfDetected = (text: string) => {
+    if (text && checkAnswer(text)) {
+      addTranscriptBreadcrumb(
+        `Question solved! (Expected answer: ${currentQuestion?.answer})`
+      );
+
+      // Capture the current index before incrementing
+      const solvedIndex = currentQuestionIndex;
+      incrementProgress();
+
+      if (solvedIndex + 1 < questions.length) {
+        const nextQuestionText = questions[solvedIndex + 1].text;
+        addTranscriptMessage(
+          `timmy-next-${Date.now()}`,
+          "assistant",
+          nextQuestionText
+        );
+      } else {
+        addTranscriptMessage(
+          `timmy-complete-${Date.now()}`,
+          "assistant",
+          "You have completed all the questions!"
+        );
+      }
+    }
+  };
+
   const handleServerEvent = (serverEvent: ServerEvent) => {
     logServerEvent(serverEvent);
 
@@ -110,9 +141,7 @@ export function useHandleServerEvent({
         if (serverEvent.session?.id) {
           setSessionStatus("CONNECTED");
           addTranscriptBreadcrumb(
-            `session.id: ${
-              serverEvent.session.id
-            }\nStarted at: ${new Date().toLocaleString()}`
+            `session.id: ${serverEvent.session.id}\nStarted at: ${new Date().toLocaleString()}`
           );
         }
         break;
@@ -136,6 +165,10 @@ export function useHandleServerEvent({
           }
           addTranscriptMessage(itemId, role, text);
         }
+
+        // Check answer if it comes in the initial message (for typed text)
+        processAnswerIfDetected(text);
+
         break;
       }
 
@@ -147,6 +180,8 @@ export function useHandleServerEvent({
             : serverEvent.transcript;
         if (itemId) {
           updateTranscriptMessage(itemId, finalTranscript, false);
+          // Now process the final transcript for an answer
+          processAnswerIfDetected(finalTranscript);
         }
         break;
       }
